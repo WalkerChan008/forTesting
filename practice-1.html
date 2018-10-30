@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-slicksort@0.1.10/dist/vue-slicksort.min.js"></script>
+    <style>
+        .connect-line {
+            border-top: 1px solid #ccc;
+        }
+        .list {
+            display: flex;
+            align-items: center;
+            width: 600px;
+            white-space: nowrap;
+        }
+        li {
+            list-style: none;
+        }
+        .list-item {
+            padding: 30px 10px;
+            /* margin-right: 10px; */
+            background: #e6e6e6;
+            user-select: none;
+        }
+        .list-item.line {
+            padding: 0;
+            width: 50px;
+            height: 5px;
+            background-color: #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- <ul>
+            <template v-for="item in items">
+                <li>{{ item.msg }}</li>
+                <li class="divider" role="presentation">{{ item.name }}</li>
+            </template>
+        </ul> -->
+        <component is="vue-drag"></component>
+        
+    </div>
+
+
+    <script>
+        function myMap(arr) {
+            this.init()
+            arr = arr || []
+            arr.forEach(item => this.set(item[0], item[1]))
+        }
+        myMap.prototype.len = 8
+        myMap.prototype.bucket = []
+        myMap.prototype.init = function () {
+            for (let i = 0; i < this.len; i++) {
+                this.bucket[i] = {
+                    next: null
+                }
+            }
+        }
+        myMap.prototype.makeHash = function (key) {
+            let hash = 0
+            if ((typeof key) == 'string') {
+                //   取后三位字符串处理
+                let len = (key.length > 3) ? key.length : 3
+                for (let i = len - 3; i < len; i++) {
+                    hash += (key[i] !== undefined) ? key[i].charCodeAt() : 0
+                }
+            } else if ((typeof key) !== 'undefined') { // 已修改
+                hash = +key
+            }
+            return hash
+        }
+        myMap.prototype.set = function (key, value) {
+            let hash = this.makeHash(key)
+            // let list = this.bucket[hash % this.len]
+            // let nextNode = list
+            let curNode = this.bucket[hash % this.len] // 已修改
+            let lastNode = null // 已修改
+            while (curNode) { // 已修改
+                if (curNode.key === key) { // 已修改
+                    curNode.value = value // 已修改
+                    return this
+                } else {
+                    lastNode = curNode // 已修改
+                    curNode = curNode.next // 已修改
+                }
+            }
+            lastNode.next = {
+                key,
+                value,
+                next: null
+            } // 已修改
+            return this
+        }
+        myMap.prototype.get = function (key) {
+            let hash = this.makeHash(key)
+            // let list = this.bucket[hash % this.len]
+            // let nextNode = list
+            let curNode = this.bucket[hash % this.len]
+            while (curNode.next) {
+                if (curNode.key === key) {
+                    return curNode.value
+                } else {
+                    curNode = curNode.next
+                }
+            }
+            return
+        }
+        myMap.prototype.has = function (key) {
+            let hash = this.makeHash(key)
+            // let list = this.bucket[hash % this.len]
+            // let nextNode = list
+            let curNode = this.bucket[hash % this.len]
+            while (curNode) {
+                if (curNode.key === key) {
+                    return true
+                } else {
+                    curNode = curNode.next
+                }
+            }
+            return false
+        }
+        myMap.prototype.delete = function (key) {
+            let hash = this.makeHash(key)
+            // let list = this.bucket[hash % this.len]
+            // let nextNode = list
+            let curNode = this.bucket[hash % this.len]
+            while (curNode.next) {
+                if (curNode.next.key === key) {
+                    curNode.next = curNode.next.next
+                    return true
+                } else {
+                    curNode = curNode.next
+                }
+            }
+            return false
+        }
+        myMap.prototype.clear = function () {
+            this.init()
+        }
+
+
+        var mymap = new myMap([
+            [0, 0],
+            [8, 8],
+            [16, 16],
+            [5, 5],
+            [13, 13],
+            [21, 21]
+        ])
+
+
+        var arr = [1, 2, 3, 4];
+
+        function createIterator(arr = []) {
+            var nextIndex = 0;
+            return {
+                next() {
+                    if (arr.length - 1 < nextIndex) {
+                        return {
+                            value: undefined,
+                            done: true
+                        }
+                    } else {
+                        return {
+                            value: arr[nextIndex++],
+                            done: false
+                        }
+                    }
+                }
+            }
+        }
+
+        // const p1 = new Promise(function (resolve, reject) {
+        //     setTimeout(resolve, 300, 'resolved-p1');
+        //     // setTimeout(reject, 200, 'err');
+        // })
+        // const p2 = new Promise(function (resolve, reject) {
+        //     // setTimeout(resolve, 200, 'resolved-p2');
+        //     setTimeout(reject, 200, 'err-p2');
+        // })
+        // const p3 = new Promise(function (resolve, reject) {
+        //     setTimeout(resolve, 500, 'resolved-p3');
+        //     // setTimeout(reject, 200, 'err-p3');
+        // })
+
+        // var all = Promise.all([p1, p2, p3]);
+
+        // all.then(arr => console.log(arr))
+        //     .catch(err => console.log(err));
+
+        // var race = Promise.race([p1, p2, p3]);
+        // race.then(str => console.log(`fulfilled: ${str}`))
+        //     .catch(err => console.log(`rejected: ${err}`));
+
+        // new Promise(function (resolve, reject) {
+        //     reject('sdf')
+        // }).then(function (data) {
+        //     return '123456'
+        // }, function (err) {
+        //     return '7890'
+        // }).then(function (data) {
+        //     console.log(`resolve: ${data}`)
+        // }, function (err) { console.log(`reject: ${err}`)})
+
+        class myPromise {
+            constructor(fn) {
+                if (typeof fn !== 'function') {
+                    throw TypeError(`myPromise resolver ${fn} is not a function`)
+                }
+                this.status = 'pending'
+                this.data = undefined
+                this.resolveCbArr = []
+                this.rejectCbArr = []
+                let resolve = (data) => {
+                    if (this.status === 'pending') {
+                        setTimeout(() => {
+                            this.status = 'resolved'
+                            this.data = data
+                            this.resolveCbArr.forEach(fn => fn())
+                        }, 0)
+                    }
+                }
+                let reject = (data) => {
+                    if (this.status === 'pending') {
+                        setTimeout(() => {
+                            this.status = 'rejected'
+                            this.data = data
+                            this.rejectCbArr.forEach(fn => fn())
+                        }, 0)
+                    }
+                }
+                fn(resolve, reject)
+            }
+            then(resolveFn, rejectFn) {
+                if (this.status === 'resolved') {
+                    let res = resolveFn(this.data)
+                    if (res instanceof myPromise) {
+                        return res
+                    } else {
+                        return myPromise.resolve(res)
+                    }
+                }
+                if (this.status === 'rejected') {
+                    let res = rejectFn(this.data)
+                    if (res instanceof myPromise) {
+                        return res
+                    } else {
+                        return myPromise.resolve(res)
+                    }
+                }
+                if (this.status === 'pending') {
+                    return new myPromise((resolve, reject) => {
+                        this.resolveCbArr.push(() => {
+                            let res = resolveFn(this.data)
+                            if (res instanceof myPromise) {
+                                res.then(resolve, reject)
+                            } else {
+                                resolve(res)
+                            }
+                        })
+                        this.rejectCbArr.push(() => {
+                            let res = rejectFn(this.data)
+                            if (res instanceof myPromise) {
+                                res.then(resolve, reject)
+                            } else {
+                                resolve(res)
+                            }
+                        })
+                    })
+                }
+            }
+            static resolve(data) {
+                return new myPromise(resolve => resolve(data))
+            }
+            static reject(data) {
+                return new myPromise((resolve, reject) => reject(data))
+            }
+        }
+
+        // let mp = new myPromise((resolve, reject) => {
+        //     setTimeout(function () {
+        //         resolve('11123')
+        //     }, 2000)
+        // })
+
+        // mp.then(data => console.log(data)).then(data => console.log(data))
+        let a = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('a')
+            }, 2000)
+        });
+        let b = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('b')
+            }, 1000)
+        });
+        let c = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('c')
+            }, 2000)
+        });
+
+        // Promise.all([a, b, c])
+        //     .then(data => {
+        //         let plusVal = ''
+        //         data.forEach(val => plusVal += val)
+        //         console.log(`plusVal: ${plusVal}`)
+        //         setTimeout(() => {
+        //             if (plusVal === 'abc') {
+        //                 console.log('done')
+        //             }
+        //         }, 200)
+        //     })
+
+        class mySet {
+            constructor(arr) {
+                arr = arr || [];
+                this.len = 8;
+                this.bucket = [];
+                this.init();
+            }
+            init() {
+                for (let i = 0; i < this.len; i++) {
+                    this.bucket[i] = {
+                        next: null
+                    }
+                }
+            }
+            makeHash(val) {
+                let hash = 0;
+                let len = val.lenth > 3 ? val.lenth : 3;
+                if (typeof val === 'string') {
+                    for (let i = len - 3; i < len; i++) {
+                        hash += val[i] === undefined ? 0 : val[i].charCodeAt();
+                    }
+                } else if (typeof val !== 'undefined') {
+                    hash = +val;
+                }
+                return hash;
+            }
+            add(val) {
+                let hash = this.makeHash(val);
+                let curNode = this.bucket[hash % this.len];
+
+                while (curNode) {
+                    if (curNode.val === val) {
+                        return this;
+                    }
+                    if (!curNode.next) {
+                        break;
+                    }
+                    curNode = curNode.next;
+                }
+                curNode.next = {
+                    val,
+                    next: null
+                }
+                return this
+            }
+        }
+
+        var ms = new mySet();
+        ms.add(12);
+
+        class Promise1 {
+            constructor(fn) {
+                if (typeof fn !== 'function') {
+                    throw TypeError(`Promise resolver ${fn} is not a function`);
+                }
+                this.status = 'pending';
+                this.data = undefined;
+                this.resolveCbArr = [];
+                this.rejectCbArr = [];
+
+                let resolve = (data) => {
+                    if (this.status === 'pending') {
+                        setTimeout(() => {
+                            this.status = 'resolved';
+                            this.data = data;
+                            this.resolveCbArr && this.resolveCbArr.forEach(fn => fn());
+                        }, 0)
+                    }
+                }
+                let reject = (data) => {
+                    if (this.status === 'pending') {
+                        this.status = 'rejected';
+                        this.data = data;
+                    }
+                }
+
+                fn(resolve, reject);
+            }
+            then(resolveFn, rejectFn) {
+                if (this.status === 'resolved') {
+                    let res = resolveFn(this.data);
+                    if (res instanceof Promise1) {
+                        return res;
+                    } else {
+                        return Promise1.resolve(res);
+                    }
+                }
+                if (this.status === 'rejected') {
+                    let res = rejectFn(this.data);
+                    if (res instanceof Promise1) {
+                        return res;
+                    } else {
+                        return Promise1.resolve(res);
+                    }
+                }
+                if (this.status === 'pending') {
+                    return new Promise1((resolve, reject) => {
+                        this.resolveCbArr.push(() => {
+                            let res = resolveFn(this.data);
+                            if (res instanceof Promise1) {
+                                res.then(resolve, reject);
+                            } else {
+                                resolve(res);
+                            }
+                        })
+                    })
+                }
+            }
+            static resolve(data) {
+                return new Promise1(resolve => resolve(data));
+            }
+            static reject(data) {
+                return new Promise1((resolve, reject) => reject(data));
+            }
+        }
+
+        let p1 = new Promise1((resolve, reject) => {
+            setTimeout(() => {
+                resolve(111);
+            }, 2000)
+        })
+        // p1.then(data => {
+        //     console.log(data)
+        // })
+        // p1.then(data => {
+        //     console.log(data)
+        // })
+    </script>
+
+    <script>
+        var { ContainerMixin, ElementMixin, HandleDirective } = window.VueSlicksort;
+        const SortableList = {
+            mixins: [ContainerMixin],
+            template: `<ul class="list">
+                            <slot />
+                       </ul>`,
+        };
+
+        const SortableItem = {
+            mixins: [ElementMixin],
+            props: ['item', 'index'],
+            template: `<li class="list-item" :class="item.line" :key="index">{{item.name}}</li>`,
+        };
+
+        Vue.component('vue-drag', {
+            name: 'Example',
+            template: `<div class="root">
+                        <SortableList axis="x" lockAxis="x" v-model="items">
+                            <SortableItem v-for="(item, index) in items" :index="index" :key="index" :item="item"/>
+                        </SortableList>
+                        </div>`,
+            components: {
+                SortableItem,
+                SortableList,
+            },
+            data() {
+                return {
+                    items: [{name: 'Item 1', line: ''},
+                    {name: '', line: 'line'},
+                    {name: 'Item 2', line: ''},
+                    {name: '', line: 'line'},
+                    {name: 'Item 3', line: ''},
+                    {name: '', line: 'line'},
+                    {name: 'Item 4', line: ''}]
+                };
+            },
+            computed: {
+                printItems() {
+                    return console.log(this.items)
+                }
+            },
+            watch: {
+                // items() {
+                //     console.log(this.items);
+                // }
+            }
+        });
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+            }
+            // render: (h) => h(ExampleVue),
+        });
+    </script>
+
+</body>
+
+</html>
