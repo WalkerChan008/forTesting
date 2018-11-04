@@ -6,49 +6,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
-    <script src="https://unpkg.com/vue-slicksort@0.1.10/dist/vue-slicksort.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4/lib/theme-default/index.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
+    <script src="https://unpkg.com/element-ui@1.4/lib/index.js"></script>
+    <script src="C:/Users/Walker/Desktop/testing/sortable.min.js"></script>
+    <script src="C:/Users/Walker/Desktop/testing/vuedraggable.min.js"></script>
     <style>
-        .connect-line {
-            border-top: 1px solid #ccc;
+        #app {
         }
-        .list {
+        .container {
+        }
+        .machine-contents {
+            /* max-width: 500px;
+            overflow: hidden; */
+        }
+
+        #app,
+        .machine-contents span {
             display: flex;
-            align-items: center;
-            width: 600px;
-            white-space: nowrap;
+            flex-direction: row;
         }
-        li {
-            list-style: none;
+        .machine-contents span {
+            max-width: 500px;
+            /* border-left: 10px solid #999;
+            border-right: 10px solid #999; */
+            overflow: hidden;
         }
-        .list-item {
-            padding: 30px 10px;
-            /* margin-right: 10px; */
-            background: #e6e6e6;
-            user-select: none;
+
+        .add-life-cycle-state,
+        .list-complete-item {
+            padding: 4px;
+            margin-top: 4px;
+            margin-right: 10px;
+            width: 100px;
+            height: 100px;
+            min-width: 100px;
+            border: solid 1px;
+            border-radius: 10px;
+            box-sizing: border-box;
+            transition: all 0.5s;
         }
-        .list-item.line {
-            padding: 0;
-            width: 50px;
-            height: 5px;
-            background-color: #ccc;
-            border-radius: 5px;
+        .list-complete-item::after {
+            display: inline-block;
+            content: '';
+            width: 20px;
+        }
+
+        .list-complete-enter,
+        .list-complete-leave-active {
+            /* opacity: 0.5; */
+        }
+
+        .draggable-handle {
+            overflow: hidden;
+            cursor: move;
+        }
+
+        .ghostClass {
+            /* visibility: hidden; */
+            opacity: 0.1;
+        }
+
+        .dragClass {
+            background: #4a4a4a;
+        }
+        .add-life-cycle-state {
+            margin-left: 40px;
+        }
+        .el-scrollbar__wrap {
+            /* margin-bottom: 0 !important;
+            overflow-x: auto; */
+            overflow-y: hidden;
         }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <!-- <ul>
-            <template v-for="item in items">
-                <li>{{ item.msg }}</li>
-                <li class="divider" role="presentation">{{ item.name }}</li>
-            </template>
-        </ul> -->
-        <component is="vue-drag"></component>
         
+            <div v-for="machine in machines" class="container">
+
+                <div class=" machine-contents">
+                    <!-- <el-scrollbar style="width: 500px;"> -->
+                    <draggable v-model="machine.jobs" :options="draggableOptions">
+                        <transition-group name="list-complete">
+                            <div v-for="(job, index) in machine.jobs" v-bind:key="job.jobNumber" class="list-complete-item">
+                                <div class="draggable-handle">
+                                    {{ job.jobNumber }}
+                                </div>
+                                <div>
+                                    <br>
+                                    <button v-on:click="removeJob(machine.id, job.jobNumber, machine.jobs, index)">Remove</button>
+                                </div>
+                            </div>
+                        </transition-group>
+                    </draggable>
+                <!-- </el-scrollbar> -->
+
+                </div>
+
+            </div>
+        <span class="add-life-cycle-state" @click="addLifeCycleState">+</span>
+
     </div>
 
+    <script>
+        var vm = new Vue({
+            el: '#app',
+            name: 'mfgActivity',
+            data: {
+                machines: [{
+                    name: "H1",
+                    id: 1,
+                    jobs: [{
+                            jobNumber: "14037-12"
+                        },
+                        {
+                            jobNumber: "14038-13"
+                        },
+                        {
+                            jobNumber: "14048-15"
+                        },
+
+                    ]
+                }],
+                draggableOptions: {
+                    sort: true,
+                    disabled: false,
+                    handle: '.draggable-handle',
+                    ghostClass: 'ghostClass'
+                }
+            },
+            computed: {},
+            methods: {
+                removeJob: function (machineId, jobNumber, jobs, index) {
+                    // Remove job from GUI
+                    jobs.splice(index, 1);
+                },
+                addLifeCycleState() {
+                    var timeStamp = new Date().getTime();
+                    this.$data.machines[0].jobs.push({
+                        jobNumber: timeStamp
+                    })
+                }
+            }
+        })
+    </script>
 
     <script>
         function myMap(arr) {
@@ -448,63 +551,6 @@
         // p1.then(data => {
         //     console.log(data)
         // })
-    </script>
-
-    <script>
-        var { ContainerMixin, ElementMixin, HandleDirective } = window.VueSlicksort;
-        const SortableList = {
-            mixins: [ContainerMixin],
-            template: `<ul class="list">
-                            <slot />
-                       </ul>`,
-        };
-
-        const SortableItem = {
-            mixins: [ElementMixin],
-            props: ['item', 'index'],
-            template: `<li class="list-item" :class="item.line" :key="index">{{item.name}}</li>`,
-        };
-
-        Vue.component('vue-drag', {
-            name: 'Example',
-            template: `<div class="root">
-                        <SortableList axis="x" lockAxis="x" v-model="items">
-                            <SortableItem v-for="(item, index) in items" :index="index" :key="index" :item="item"/>
-                        </SortableList>
-                        </div>`,
-            components: {
-                SortableItem,
-                SortableList,
-            },
-            data() {
-                return {
-                    items: [{name: 'Item 1', line: ''},
-                    {name: '', line: 'line'},
-                    {name: 'Item 2', line: ''},
-                    {name: '', line: 'line'},
-                    {name: 'Item 3', line: ''},
-                    {name: '', line: 'line'},
-                    {name: 'Item 4', line: ''}]
-                };
-            },
-            computed: {
-                printItems() {
-                    return console.log(this.items)
-                }
-            },
-            watch: {
-                // items() {
-                //     console.log(this.items);
-                // }
-            }
-        });
-
-        const app = new Vue({
-            el: '#app',
-            data: {
-            }
-            // render: (h) => h(ExampleVue),
-        });
     </script>
 
 </body>
