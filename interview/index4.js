@@ -404,12 +404,14 @@ class MyPromise {
     }
     static all (promiseArr = []) {
         let arr = [],
-            len = promiseArr.length
+            len = promiseArr.length,
+            count = 0
         return new MyPromise((resolve, reject) => {
             promiseArr.forEach((p, i) => {
                 p.then(data => {
                     arr[i] = data
-                    if(i === len - 1) {
+                    count ++;
+                    if(count >= len) {
                         resolve(arr)
                     }
                 }, reject)
@@ -432,9 +434,14 @@ function handleMyPromise (fn, data, resolve, reject) {
     }, 0, fn, resolve, reject)
 }
 
-console.log('start')
-let p1 = new MyPromise((res, rej) => { console.log('resolve console'); setTimeout(() => res('p1')) }),
+// console.log('start')
+let p1 = new MyPromise((res, rej) => { console.log('resolve console'); setTimeout(() => rej('p1')) }),
     p2 = new MyPromise((res, rej) => { console.log('reject console'); res('p2') })
 
-MyPromise.all([p1, p2]).then().then(data => console.log('data', data), err => console.log('err', err)).catch(err => console.log('catch', err))
-console.log('end')
+MyPromise.all([p1.catch(err => { console.log('p1 catch: ', err); return 'p1 catch'}), p2]).then(data => console.log('data', data), err => console.log('err', err)).catch(err => console.log('catch', err))
+// console.log('end')
+
+// let p3 = new Promise((res, rej) => { console.log('resolve console'); setTimeout(() => rej('p1')) }),
+//     p4 = new Promise((res, rej) => { console.log('reject console'); res('p2') })
+
+// Promise.all([p3.catch(err => { console.log('p1 catch: ', err); return 'p1 catch'}), p4]).then(data => console.log('data', data), err => console.log('err', err)).catch(err => console.log('catch', err))
